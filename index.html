@@ -1,230 +1,750 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Karta wizyty pacjenta</title>
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- PapaParse -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
-  <!-- FileSaver.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-  <!-- html-docx-js -->
-  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
 </head>
-<body class="bg-gray-50 text-gray-800 p-4">
-  <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-    <div class="p-6">
-      <!-- Nagłówek -->
-      <header class="flex flex-col md:flex-row items-center mb-6">
-        <img src="logo_szpitala.png" alt="Logo szpitala" class="h-24 mr-6 mb-4 md:mb-0">
-        <div class="text-center md:text-left">
-          <h2 class="text-3xl font-bold">Klinika Kardiologii z Pododdziałem Ostrych Zespołów Wieńcowych</h2>
-          <p class="mt-1 text-lg">Kliniczny Szpital Wojewódzki Nr 2 im. Św. Jadwigi Królowej w Rzeszowie</p>
-          <p class="text-sm text-gray-600">ul. Lwowska 60, 35-301 Rzeszów</p>
-        </div>
-      </header>
-
-      <h1 class="text-2xl md:text-3xl font-semibold text-center mb-2">Karta wizyty pacjenta</h1>
-      <!-- Wyświetlana nazwa pacjenta -->
-      <p id="displayName" class="text-lg font-medium text-center mb-8">Pacjent: —</p>
-
-      <form id="visitForm" class="space-y-6">
-        <!-- 1. Dane pacjenta -->
-        <fieldset class="border p-4 rounded">
-          <legend class="font-semibold">1. Dane pacjenta</legend>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <label class="block text-sm">Imię i nazwisko<br>
-              <input name="patientName" type="text" class="mt-1 w-full border rounded p-2" required>
-            </label>
-            <label class="block text-sm">PESEL / ID pacjenta<br>
-              <input name="patientID" type="text" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">Wiek<br>
-              <input name="patientAge" type="number" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">Data wizyty<br>
-              <input name="visitDate" type="date" class="mt-1 w-full border rounded p-2">
-            </label>
-          </div>
-        </fieldset>
-
-        <!-- 2. Kontrola kardiostymulatora -->
-        <fieldset class="border p-4 rounded">
-          <legend class="font-semibold">2. Kontrola kardiostymulatora</legend>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-            <label class="block text-sm">Bateria [%]<br>
-              <input name="batteryPercent" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">ERI [%]<br>
-              <input name="ERI" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">Vp [%]<br>
-              <input name="VpPercent" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">Sensing [mV]<br>
-              <input name="sensing" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">Pacing threshold [V]<br>
-              <input name="pacingThreshold" type="number" step="0.01" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">Impedancja [Ω]<br>
-              <input name="impedance" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">Tryb pracy<br>
-              <input name="pmMode" type="text" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">EKG<br>
-              <textarea name="EKG" rows="2" class="mt-1 w-full border rounded p-2"></textarea>
-            </label>
-          </div>
-        </fieldset>
-
-        <!-- 3. Jakość życia i Test PASAT -->
-        <fieldset class="border p-4 rounded">
-          <legend class="font-semibold">3. Jakość życia i Test PASAT</legend>
-          <label class="block text-sm mt-2">Ocena jakości życia (EQ-5D-5L)<br>
-            <input name="EQ5D" type="text" class="mt-1 w-full border rounded p-2">
-          </label>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <label class="block text-sm">HR PASAT baseline [/min]<br>
-              <input name="PASAT_HR_baseline" type="number" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">HR PASAT end [/min]<br>
-              <input name="PASAT_HR_end" type="number" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">RR PASAT baseline [mmHg]<br>
-              <input name="PASAT_RR_baseline" type="number" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">RR PASAT end [mmHg]<br>
-              <input name="PASAT_RR_end" type="number" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">% poprawnych odpowiedzi<br>
-              <input name="PASAT_percentCorrect" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">SpO₂ [%]<br>
-              <input name="SpO2" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
-            </label>
-          </div>
-        </fieldset>
-
-        <!-- 4. Handgrip Test -->
-        <fieldset class="border p-4 rounded">
-          <legend class="font-semibold">4. Handgrip Test</legend>
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-2">
-            <label class="block text-sm">Wyjściowo (kg)<br>
-              <input name="handgripBaseline" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">HR początkowy [/min]<br>
-              <input name="handgripHR_baseline" type="number" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">RR początkowy [mmHg]<br>
-              <input name="handgripRR_baseline" type="number" class="mt-1 w-full border rounded p-2">
-            </label>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mt-4">
-            <label class="block text-sm">HR po 1 min<br>
-              <input name="handgripHR_1min" type="number" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">HR po 2 min<br>
-              <input name="handgripHR_2min" type="number" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">HR po 3 min<br>
-              <input name="handgripHR_3min" type="number" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">HR po 4 min<br>
-              <input name="handgripHR_4min" type="number" class="mt-1 w-full border rounded p-2">
-            </label>
-            <label class="block text-sm">HR po 5 min<br>
-              <input name="handgripHR_5min" type="number" class="mt-1 w-full border rounded p-2">
-            </label>
-          </div>
-        </fieldset>
-
-                
-        <!-- 5. Ocena zastawek -->
-        <fieldset class="border p-4 rounded space-y-6">
-          <legend class="font-semibold">5. Ocena zastawek</legend>
-          <!-- Mitralna -->
-          <div>
-            <h3 class="font-semibold mb-2">5.1 Mitralna</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label class="block text-sm">Niedomykalność<br>
-                <select name="mitralRegurg" class="mt-1 w-full border rounded p-2">
-                  <option value="">–</option><option>łagodna</option><option>umiarkowana</option><option>średni</option>
-                </select>
-              </label>
-              <label class="block text-sm">Stenoza<br>
-                <select name="mitralStenosis" class="mt-1 w-full border rounded p-2">
-                  <option value="">–</option><option>łagodna</option><option>umiarkowana</option><option>ciężka</option>
-                </select>
-              </label>
-            </div>
-          </div>
-          <!-- Aortalna -->
-          <div>
-            <h3 class="font-semibold mb-2">5.2 Aortalna</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label class="block text-sm">Niedomykalność<br>
-                <select name="aorticRegurg" class="mt-1 w-full border rounded p-2">
-                  <option value="">–</option><option>łagodna</option><option>umiarkowana</option><option>średni</option>
-                </select>
-              </label>
-              <label class="block text-sm">Stenoza<br>
-                <select name="aorticStenosis" class="mt-1 w-full border rounded p-2">
-                  <option value="">–</option><option>łagodna</option><option>umiarkowana</option><option>ciężka</option>
-                </select>
-              </label>
-            </div>
-          </div>
-          <!-- Trójdzielna -->
-          <div>
-            <h3 class="font-semibold mb-2">5.3 Trójdzielna</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label class="block text-sm">Niedomykalność<br>
-                <select name="tricuspidRegurg" class="mt-1 w-full border rounded p-2">
-                  <option value="">–</option><option>łagodna</option><option>umiarkowana</option><option>średni</option>
-                </select>
-              </label>
-              <label class="block text-sm">Stenoza<br>
-                <select name="tricuspidStenosis" class="mt-1 w-full border rounded p-2">
-                  <option value="">–</option><option>łagodna</option><option>umiarkowana</option><option>ciężka</option>
-                </select>
-              </label>
-            </div>
-          </div>
-        </fieldset>
-
-        <!-- Eksport -->
-        <div class="flex space-x-4 pt-4">
-          <button type="button" id="exportCsv" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-            Eksportuj CSV
-          </button>
-          <button type="button" id="exportDocx" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
-            Eksportuj DOCX
-          </button>
-        </div>
-      </form>
+<body class="bg-gray-50 p-6">
+  <!-- Header z logo szpitala i informacjami kliniki -->
+  <header class="flex items-center justify-between mb-6">
+    <img src="logo_szpitala.png" alt="Logo szpitala" class="h-16">
+    <div class="text-right">
+      <h1 class="text-xl font-bold">Klinika Kardiologii</h1>
+      <p>Szpital Uniwersytecki w Mieście X<br>ul. Przykładowa 1, 00-000 Miasto</p>
     </div>
-  </div>
+  </header>
 
+  <!-- Tytuł strony/formularza -->
+  <h2 class="text-2xl font-bold text-center mb-6">Karta wizyty pacjenta</h2>
+
+  <form class="space-y-8">
+    <!-- Dane pacjenta -->
+    <section>
+      <h3 class="text-xl font-semibold mb-4">Dane pacjenta</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="nazwisko" class="block font-medium">Nazwisko:</label>
+          <input type="text" id="nazwisko" name="nazwisko" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="imie" class="block font-medium">Imię:</label>
+          <input type="text" id="imie" name="imie" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="data_urodzenia" class="block font-medium">Data urodzenia:</label>
+          <input type="date" id="data_urodzenia" name="data_urodzenia" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="pesel" class="block font-medium">PESEL:</label>
+          <input type="text" id="pesel" name="pesel" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="data_wizyty" class="block font-medium">Data wizyty:</label>
+          <input type="date" id="data_wizyty" name="data_wizyty" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="data_implantacji" class="block font-medium">Data implantacji PM:</label>
+          <input type="date" id="data_implantacji" name="data_implantacji" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="czas_od_implantacji" class="block font-medium">Czas od implantacji:</label>
+          <input type="text" id="czas_od_implantacji" name="czas_od_implantacji" placeholder="np. 1 miesiąc" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="typ_stymulatora" class="block font-medium">Typ stymulatora/tryb:</label>
+          <input type="text" id="typ_stymulatora" name="typ_stymulatora" placeholder="np. VVI, DDD-CLS" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+    </section>
+
+    <!-- Kontrola kardiostymulatora -->
+    <section>
+      <h3 class="text-xl font-semibold mb-4">Kontrola kardiostymulatora</h3>
+      <div class="grid grid-cols-2 gap-4 items-center">
+        <div>
+          <label for="bateria" class="block font-medium">Bateria (%):</label>
+          <input type="number" id="bateria" name="bateria" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="eri" class="block font-medium">ERI (wymiana):</label>
+          <input type="text" id="eri" name="eri" placeholder="np. nie" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="vp" class="block font-medium">Vp (%):</label>
+          <input type="number" id="vp" name="vp" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="sensing" class="block font-medium">Sensing (mV):</label>
+          <input type="number" id="sensing" name="sensing" step="0.1" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="threshold" class="block font-medium">Pacing threshold (V):</label>
+          <input type="number" id="threshold" name="threshold" step="0.1" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="impedancja" class="block font-medium">Impedancja (Ω):</label>
+          <input type="number" id="impedancja" name="impedancja" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="tryb" class="block font-medium">Tryb stymulacji:</label>
+          <input type="text" id="tryb" name="tryb" placeholder="np. VVI, DDD" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div class="col-span-2">
+          <label for="ekg" class="block font-medium">EKG:</label>
+          <textarea id="ekg" name="ekg" rows="3" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1"></textarea>
+        </div>
+        <div class="col-span-2">
+          <p class="text-sm text-gray-600">Ocena jakości życia (EQ-5D-5L) – wypełniony formularz w załączeniu.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Test PASAT -->
+    <section>
+      <h3 class="text-xl font-semibold mb-4">Test PASAT</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label for="pasat_hr_baseline" class="block font-medium">HR baseline (/min):</label>
+          <input type="number" id="pasat_hr_baseline" name="pasat_hr_baseline" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="pasat_hr_end" class="block font-medium">HR koniec (/min):</label>
+          <input type="number" id="pasat_hr_end" name="pasat_hr_end" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="pasat_rr_baseline" class="block font-medium">RR baseline (mmHg):</label>
+          <input type="text" id="pasat_rr_baseline" name="pasat_rr_baseline" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="pasat_rr_end" class="block font-medium">RR koniec (mmHg):</label>
+          <input type="text" id="pasat_rr_end" name="pasat_rr_end" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="pasat_correct" class="block font-medium">% poprawnych odp.:</label>
+          <input type="number" id="pasat_correct" name="pasat_correct" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="pasat_spo2" class="block font-medium">SpO2 (%):</label>
+          <input type="number" id="pasat_spo2" name="pasat_spo2" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+    </section>
+
+    <!-- Handgrip Test -->
+    <section>
+      <h3 class="text-xl font-semibold mb-4">Handgrip Test</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label for="handgrip_kg" class="block font-medium">Wyjściowo (kg):</label>
+          <input type="number" id="handgrip_kg" name="handgrip_kg" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="handgrip_hr_base" class="block font-medium">HR początkowy:</label>
+          <input type="number" id="handgrip_hr_base" name="handgrip_hr_base" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="handgrip_rr_base" class="block font-medium">RR początkowy:</label>
+          <input type="text" id="handgrip_rr_base" name="handgrip_rr_base" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-4">
+        <div>
+          <label for="handgrip_hr_1" class="block font-medium">HR po 1 min:</label>
+          <input type="number" id="handgrip_hr_1" name="handgrip_hr_1" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="handgrip_hr_2" class="block font-medium">HR po 2 min:</label>
+          <input type="number" id="handgrip_hr_2" name="handgrip_hr_2" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="handgrip_hr_3" class="block font-medium">HR po 3 min:</label>
+          <input type="number" id="handgrip_hr_3" name="handgrip_hr_3" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="handgrip_hr_4" class="block font-medium">HR po 4 min:</label>
+          <input type="number" id="handgrip_hr_4" name="handgrip_hr_4" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="handgrip_hr_5" class="block font-medium">HR po 5 min:</label>
+          <input type="number" id="handgrip_hr_5" name="handgrip_hr_5" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+    </section>
+
+    <!-- ECHO serca -->
+    <section>
+      <h3 class="text-xl font-semibold mb-4">ECHO serca</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label for="lv_edd" class="block font-medium">LVEDD (mm):</label>
+          <input type="number" id="lv_edd" name="lv_edd" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="lv_esd" class="block font-medium">LVESD (mm):</label>
+          <input type="number" id="lv_esd" name="lv_esd" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="ivs" class="block font-medium">IVSd (mm):</label>
+          <input type="number" id="ivs" name="ivs" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="pw" class="block font-medium">PWd (mm):</label>
+          <input type="number" id="pw" name="pw" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="la" class="block font-medium">LA (mm):</label>
+          <input type="number" id="la" name="la" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="lavi" class="block font-medium">LAVI (ml/m²):</label>
+          <input type="number" id="lavi" name="lavi" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="raa" class="block font-medium">RAA (cm²):</label>
+          <input type="number" id="raa" name="raa" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="rv" class="block font-medium">RV (mm):</label>
+          <input type="number" id="rv" name="rv" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+        <div>
+          <label for="ao_root" class="block font-medium">Ao op (mm):</label>
+          <input type="number" id="ao_root" name="ao_root" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="ao_asc" class="block font-medium">Ao asc (mm):</label>
+          <input type="number" id="ao_asc" name="ao_asc" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="mpa" class="block font-medium">MPA (mm):</label>
+          <input type="number" id="mpa" name="mpa" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+        <div>
+          <label for="ef" class="block font-medium">EF (%):</label>
+          <input type="number" id="ef" name="ef" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="edv" class="block font-medium">EDV (ml):</label>
+          <input type="number" id="edv" name="edv" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="esv" class="block font-medium">ESV (ml):</label>
+          <input type="number" id="esv" name="esv" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4 mt-4">
+        <div>
+          <label for="rwm" class="block font-medium">Zab. kurczliwości:</label>
+          <select id="rwm" name="rwm" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+            <option value="" selected></option>
+            <option value="Tak">Tak</option>
+            <option value="Nie">Nie</option>
+          </select>
+        </div>
+        <div>
+          <label for="tapse" class="block font-medium">TAPSE (mm):</label>
+          <input type="number" id="tapse" name="tapse" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+    </section>
+
+    <!-- Ocena zastawek -->
+    <section>
+      <h3 class="text-xl font-semibold mb-4">Ocena zastawek</h3>
+      <!-- Zastawka mitralna -->
+      <h4 class="font-semibold">Zastawka mitralna</h4>
+      <div class="grid grid-cols-4 gap-4">
+        <div>
+          <label for="mr_severity" class="block font-medium">Niedomykalność MR:</label>
+          <select id="mr_severity" name="mr_severity" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+            <option value="" selected></option>
+            <option value="Brak">Brak</option>
+            <option value="Łagodna">Łagodna</option>
+            <option value="Umiarkowana">Umiarkowana</option>
+            <option value="Ciężka">Ciężka</option>
+          </select>
+        </div>
+        <div>
+          <label for="mr_vc" class="block font-medium">VC (cm):</label>
+          <input type="number" id="mr_vc" name="mr_vc" step="0.1" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="mr_pisa" class="block font-medium">PISA (mm):</label>
+          <input type="number" id="mr_pisa" name="mr_pisa" step="0.1" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="mr_ero" class="block font-medium">ERO (cm²):</label>
+          <input type="number" id="mr_ero" name="mr_ero" step="0.1" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-4 mt-4">
+        <div>
+          <label for="mr_ea" class="block font-medium">E/A:</label>
+          <input type="number" id="mr_ea" name="mr_ea" step="0.1" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="mr_mxpg" class="block font-medium">MxPG (mmHg):</label>
+          <input type="number" id="mr_mxpg" name="mr_mxpg" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="mr_mnpg" class="block font-medium">MnPG (mmHg):</label>
+          <input type="number" id="mr_mnpg" name="mr_mnpg" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+      <!-- Zastawka aortalna -->
+      <h4 class="font-semibold mt-6">Zastawka aortalna</h4>
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <label for="av_morphology" class="block font-medium">Płatki:</label>
+          <select id="av_morphology" name="av_morphology" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+            <option value="" selected></option>
+            <option value="Trójpłatkowa">Trójpłatkowa</option>
+            <option value="Dwupłatkowa">Dwupłatkowa</option>
+          </select>
+        </div>
+        <div>
+          <label for="ar_severity" class="block font-medium">Niedomykalność AR:</label>
+          <select id="ar_severity" name="ar_severity" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+            <option value="" selected></option>
+            <option value="Brak">Brak</option>
+            <option value="Łagodna">Łagodna</option>
+            <option value="Umiarkowana">Umiarkowana</option>
+            <option value="Ciężka">Ciężka</option>
+          </select>
+        </div>
+        <div>
+          <label for="ar_vc" class="block font-medium">VC (cm):</label>
+          <input type="number" id="ar_vc" name="ar_vc" step="0.1" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-4 mt-4">
+        <div>
+          <label for="ar_pht" class="block font-medium">PHT (ms):</label>
+          <input type="number" id="ar_pht" name="ar_pht" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="av_vmax" class="block font-medium">Vmax (m/s):</label>
+          <input type="number" id="av_vmax" name="av_vmax" step="0.1" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="av_pmax" class="block font-medium">Pmax (mmHg):</label>
+          <input type="number" id="av_pmax" name="av_pmax" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+      <!-- Zastawka trójdzielna -->
+      <h4 class="font-semibold mt-6">Zastawka trójdzielna</h4>
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <label for="tr_severity" class="block font-medium">Niedomykalność TR:</label>
+          <select id="tr_severity" name="tr_severity" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+            <option value="" selected></option>
+            <option value="Brak">Brak</option>
+            <option value="Łagodna">Łagodna</option>
+            <option value="Umiarkowana">Umiarkowana</option>
+            <option value="Ciężka">Ciężka</option>
+          </select>
+        </div>
+        <div>
+          <label for="tr_pmax" class="block font-medium">Pmax (mmHg):</label>
+          <input type="number" id="tr_pmax" name="tr_pmax" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="tr_vmax" class="block font-medium">TR Vmax (m/s):</label>
+          <input type="number" id="tr_vmax" name="tr_vmax" step="0.1" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+      <div class="mt-4">
+        <label for="pericardium" class="font-medium">Osierdzie:</label>
+        <select id="pericardium" name="pericardium" class="ml-2 border border-gray-300 rounded px-2 py-1">
+          <option value="Bez płynu">Bez płynu</option>
+          <option value="Płyn obecny">Płyn obecny</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Próba wysiłkowa -->
+    <section>
+      <h3 class="text-xl font-semibold mb-4">Próba wysiłkowa</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label for="stress_hr_base" class="block font-medium">HR spoczynkowe (/min):</label>
+          <input type="number" id="stress_hr_base" name="stress_hr_base" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="stress_hr_peak" class="block font-medium">HR szczytowe (/min):</label>
+          <input type="number" id="stress_hr_peak" name="stress_hr_peak" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="stress_hr_maxpct" class="block font-medium">% HR max:</label>
+          <input type="number" id="stress_hr_maxpct" name="stress_hr_maxpct" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="stress_rr_base" class="block font-medium">RR spoczynkowe (mmHg):</label>
+          <input type="text" id="stress_rr_base" name="stress_rr_base" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="stress_rr_peak" class="block font-medium">RR maksymalne (mmHg):</label>
+          <input type="text" id="stress_rr_peak" name="stress_rr_peak" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="stress_rr_after" class="block font-medium">RR po teście (mmHg):</label>
+          <input type="text" id="stress_rr_after" name="stress_rr_after" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+      <div class="mt-4">
+        <label for="borg" class="block font-medium">Skala Borga:</label>
+        <input type="number" id="borg" name="borg" min="0" max="20" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+      </div>
+      <div class="mt-4">
+        <span class="font-medium">Objawy podczas próby:</span>
+        <div class="mt-2 flex flex-wrap gap-4">
+          <label><input type="checkbox" id="symptom_zmeczenie" name="symptom_zmeczenie" class="mr-1"> Zmęczenie</label>
+          <label><input type="checkbox" id="symptom_bol" name="symptom_bol" class="mr-1"> Ból w klp</label>
+          <label><input type="checkbox" id="symptom_duszność" name="symptom_duszność" class="mr-1"> Duszność</label>
+          <label><input type="checkbox" id="symptom_omdlenie" name="symptom_omdlenie" class="mr-1"> Omdlenie</label>
+          <div class="flex items-center">
+            <input type="checkbox" id="symptom_inne" name="symptom_inne" class="mr-1">
+            <label for="symptom_inne" class="mr-2">Inne:</label>
+            <input type="text" id="symptom_inne_text" name="symptom_inne_text" placeholder="podaj inne" class="border border-gray-300 rounded px-2 py-1">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Zresetowanie liczników i eksport -->
+    <section>
+      <h3 class="text-xl font-semibold mb-4">Zresetowanie liczników i eksport</h3>
+      <div class="mb-4">
+        <label><input type="checkbox" id="counters_reset" name="counters_reset" class="mr-2"> Zresetowano liczniki</label>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div>
+          <label for="mode_before" class="block font-medium">Tryb przed zmianą:</label>
+          <input type="text" id="mode_before" name="mode_before" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+          <label for="mode_after" class="block font-medium">Tryb po zmianie:</label>
+          <input type="text" id="mode_after" name="mode_after" class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
+        </div>
+      </div>
+      <div>
+        <button type="button" onclick="exportCSV()" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded mr-4">Eksport do CSV</button>
+        <button type="button" onclick="exportDOCX()" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded">Eksport do DOCX</button>
+      </div>
+    </section>
+  </form>
+
+  <!-- Skrypt obsługujący eksport -->
+  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
   <script>
-    // Dynamiczne pola wymiarów
-    const dimsList = [
-      'LVEDD [mm]', 'LVESD [mm]', 'LA [mm]', 'LAVI [ml/m2]', 
-      'IVS [mm]', 'PW [mm]', 'RVOT [mm]'
-    ];
-    const dimsContainer = document.getElementById('dims');
-    dimsList.forEach(label => {
-      const wrap = document.createElement('label');
-      wrap.className = 'block text-sm';
-      wrap.innerHTML = `${label}<br>
-        <input name="${label}" type="number" step="0.1" class="mt-1 w-full border rounded p-2">`;
-      dimsContainer.appendChild(wrap);
-    });
+    function exportCSV() {
+      // Pobranie wartości z formularza
+      var nazwisko = document.getElementById('nazwisko').value || '';
+      var imie = document.getElementById('imie').value || '';
+      var data_urodzenia = document.getElementById('data_urodzenia').value || '';
+      var pesel = document.getElementById('pesel').value || '';
+      var data_wizyty = document.getElementById('data_wizyty').value || '';
+      var data_implantacji = document.getElementById('data_implantacji').value || '';
+      var czas_od_implantacji = document.getElementById('czas_od_implantacji').value || '';
+      var typ_stymulatora = document.getElementById('typ_stymulatora').value || '';
+      var bateria = document.getElementById('bateria').value || '';
+      var eri = document.getElementById('eri').value || '';
+      var vp = document.getElementById('vp').value || '';
+      var sensing = document.getElementById('sensing').value || '';
+      var threshold = document.getElementById('threshold').value || '';
+      var impedancja = document.getElementById('impedancja').value || '';
+      var tryb = document.getElementById('tryb').value || '';
+      var ekg = document.getElementById('ekg').value || '';
+      var pasat_hr_base = document.getElementById('pasat_hr_baseline').value || '';
+      var pasat_hr_end = document.getElementById('pasat_hr_end').value || '';
+      var pasat_rr_base = document.getElementById('pasat_rr_baseline').value || '';
+      var pasat_rr_end = document.getElementById('pasat_rr_end').value || '';
+      var pasat_correct = document.getElementById('pasat_correct').value || '';
+      var pasat_spo2 = document.getElementById('pasat_spo2').value || '';
+      var handgrip_kg = document.getElementById('handgrip_kg').value || '';
+      var handgrip_hr_base = document.getElementById('handgrip_hr_base').value || '';
+      var handgrip_rr_base = document.getElementById('handgrip_rr_base').value || '';
+      var handgrip_hr1 = document.getElementById('handgrip_hr_1').value || '';
+      var handgrip_hr2 = document.getElementById('handgrip_hr_2').value || '';
+      var handgrip_hr3 = document.getElementById('handgrip_hr_3').value || '';
+      var handgrip_hr4 = document.getElementById('handgrip_hr_4').value || '';
+      var handgrip_hr5 = document.getElementById('handgrip_hr_5').value || '';
+      var lv_edd = document.getElementById('lv_edd').value || '';
+      var lv_esd = document.getElementById('lv_esd').value || '';
+      var ivs = document.getElementById('ivs').value || '';
+      var pw = document.getElementById('pw').value || '';
+      var la = document.getElementById('la').value || '';
+      var lavi = document.getElementById('lavi').value || '';
+      var raa = document.getElementById('raa').value || '';
+      var rv = document.getElementById('rv').value || '';
+      var ao_root = document.getElementById('ao_root').value || '';
+      var ao_asc = document.getElementById('ao_asc').value || '';
+      var mpa = document.getElementById('mpa').value || '';
+      var ef = document.getElementById('ef').value || '';
+      var edv = document.getElementById('edv').value || '';
+      var esv = document.getElementById('esv').value || '';
+      var rwm = document.getElementById('rwm').value || '';
+      var tapse = document.getElementById('tapse').value || '';
+      var mr_sev = document.getElementById('mr_severity').value || '';
+      var mr_vc = document.getElementById('mr_vc').value || '';
+      var mr_pisa = document.getElementById('mr_pisa').value || '';
+      var mr_ero = document.getElementById('mr_ero').value || '';
+      var mr_ea = document.getElementById('mr_ea').value || '';
+      var mr_mxpg = document.getElementById('mr_mxpg').value || '';
+      var mr_mnpg = document.getElementById('mr_mnpg').value || '';
+      var av_morph = document.getElementById('av_morphology').value || '';
+      var ar_sev = document.getElementById('ar_severity').value || '';
+      var ar_vc = document.getElementById('ar_vc').value || '';
+      var ar_pht = document.getElementById('ar_pht').value || '';
+      var av_vmax = document.getElementById('av_vmax').value || '';
+      var av_pmax = document.getElementById('av_pmax').value || '';
+      var tr_sev = document.getElementById('tr_severity').value || '';
+      var tr_pmax = document.getElementById('tr_pmax').value || '';
+      var tr_vmax = document.getElementById('tr_vmax').value || '';
+      var pericardium = document.getElementById('pericardium').value || '';
+      var stress_hr_base = document.getElementById('stress_hr_base').value || '';
+      var stress_hr_peak = document.getElementById('stress_hr_peak').value || '';
+      var stress_hr_maxpct = document.getElementById('stress_hr_maxpct').value || '';
+      var stress_rr_base = document.getElementById('stress_rr_base').value || '';
+      var stress_rr_peak = document.getElementById('stress_rr_peak').value || '';
+      var stress_rr_after = document.getElementById('stress_rr_after').value || '';
+      var borg = document.getElementById('borg').value || '';
+      var sym_zm = document.getElementById('symptom_zmeczenie').checked ? '1' : '0';
+      var sym_bol = document.getElementById('symptom_bol').checked ? '1' : '0';
+      var sym_dusz = document.getElementById('symptom_duszność').checked ? '1' : '0';
+      var sym_omdl = document.getElementById('symptom_omdlenie').checked ? '1' : '0';
+      var sym_inne = document.getElementById('symptom_inne').checked ? '1' : '0';
+      var sym_inne_text = document.getElementById('symptom_inne_text').value || '';
+      var counters_reset = document.getElementById('counters_reset').checked ? '1' : '0';
+      var mode_before = document.getElementById('mode_before').value || '';
+      var mode_after = document.getElementById('mode_after').value || '';
 
-    // ... dalej bez zmian ...
+      // Przygotowanie CSV (nagłówek + wartości)
+      var headers = [
+        'Nazwisko','Imię','Data urodzenia','PESEL','Data wizyty','Data implantacji','Czas od implantacji','Typ stymulatora',
+        'Bateria_%','ERI','Vp_%','Sensing_mV','Threshold_V','Impedancja_ohm','Tryb_stym','EKG',
+        'PASAT_HR_base','PASAT_HR_end','PASAT_RR_base','PASAT_RR_end','PASAT_%_odp','PASAT_SpO2',
+        'Handgrip_kg','Handgrip_HR_base','Handgrip_RR_base','HR_1min','HR_2min','HR_3min','HR_4min','HR_5min',
+        'LVEDD','LVESD','IVSd','PWd','LA','LAVI','RAA','RV',
+        'Ao_root','Ao_asc','MPA',
+        'EF','EDV','ESV',
+        'Zab_kurczliwości','TAPSE',
+        'MR_severity','MR_VC','MR_PISA','MR_ERO','MR_EA','MR_MxPG','MR_MnPG',
+        'Ao_morphology','AR_severity','AR_VC','AR_PHT','Ao_Vmax','Ao_Pmax',
+        'TR_severity','TR_Pmax','TR_Vmax','Osierdzie',
+        'Stress_HR_base','Stress_HR_peak','Stress_%HRmax','Stress_RR_base','Stress_RR_peak','Stress_RR_after',
+        'Borg','Symptom_zmęczenie','Symptom_ból_klp','Symptom_duszność','Symptom_omdlenie','Symptom_inne','Symptom_inne_opis',
+        'Liczniki_reset','Tryb_przed','Tryb_po'
+      ];
+      var values = [
+        nazwisko, imie, data_urodzenia, pesel, data_wizyty, data_implantacji, czas_od_implantacji, typ_stymulatora,
+        bateria, eri, vp, sensing, threshold, impedancja, tryb, ekg.replace(/\n/g, ' '),
+        pasat_hr_base, pasat_hr_end, pasat_rr_base, pasat_rr_end, pasat_correct, pasat_spo2,
+        handgrip_kg, handgrip_hr_base, handgrip_rr_base, handgrip_hr1, handgrip_hr2, handgrip_hr3, handgrip_hr4, handgrip_hr5,
+        lv_edd, lv_esd, ivs, pw, la, lavi, raa, rv,
+        ao_root, ao_asc, mpa,
+        ef, edv, esv,
+        rwm, tapse,
+        mr_sev, mr_vc, mr_pisa, mr_ero, mr_ea, mr_mxpg, mr_mnpg,
+        av_morph, ar_sev, ar_vc, ar_pht, av_vmax, av_pmax,
+        tr_sev, tr_pmax, tr_vmax, pericardium,
+        stress_hr_base, stress_hr_peak, stress_hr_maxpct, stress_rr_base, stress_rr_peak, stress_rr_after,
+        borg, sym_zm, sym_bol, sym_dusz, sym_omdl, sym_inne, sym_inne_text,
+        counters_reset, mode_before, mode_after
+      ];
+      // Formatowanie wartości do CSV (cudzysłowy wokół wartości)
+      var csvLine = values.map(val => {
+        var v = String(val).replace(/\"/g, '\"\"');
+        return `"${v}"`;
+      }).join(',');
+      var csvHeader = headers.join(',');
+      var csvContent = csvHeader + "\n" + csvLine;
+      // Utworzenie Blob i inicjowanie pobrania pliku CSV
+      var blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      var filename = (nazwisko && imie ? (nazwisko + '_' + imie) : 'eksport') + '_karta_wizyty.csv';
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function exportDOCX() {
+      // Pobranie wartości (podobnie jak w exportCSV)
+      var nazwisko = document.getElementById('nazwisko').value || '';
+      var imie = document.getElementById('imie').value || '';
+      var data_urodzenia = document.getElementById('data_urodzenia').value || '';
+      var pesel = document.getElementById('pesel').value || '';
+      var data_wizyty = document.getElementById('data_wizyty').value || '';
+      var data_implantacji = document.getElementById('data_implantacji').value || '';
+      var czas_od_implantacji = document.getElementById('czas_od_implantacji').value || '';
+      var typ_stymulatora = document.getElementById('typ_stymulatora').value || '';
+      var bateria = document.getElementById('bateria').value || '';
+      var eri = document.getElementById('eri').value || '';
+      var vp = document.getElementById('vp').value || '';
+      var sensing = document.getElementById('sensing').value || '';
+      var threshold = document.getElementById('threshold').value || '';
+      var impedancja = document.getElementById('impedancja').value || '';
+      var tryb = document.getElementById('tryb').value || '';
+      var ekg = document.getElementById('ekg').value || '';
+      var pasat_hr_base = document.getElementById('pasat_hr_baseline').value || '';
+      var pasat_hr_end = document.getElementById('pasat_hr_end').value || '';
+      var pasat_rr_base = document.getElementById('pasat_rr_baseline').value || '';
+      var pasat_rr_end = document.getElementById('pasat_rr_end').value || '';
+      var pasat_correct = document.getElementById('pasat_correct').value || '';
+      var pasat_spo2 = document.getElementById('pasat_spo2').value || '';
+      var handgrip_kg = document.getElementById('handgrip_kg').value || '';
+      var handgrip_hr_base = document.getElementById('handgrip_hr_base').value || '';
+      var handgrip_rr_base = document.getElementById('handgrip_rr_base').value || '';
+      var handgrip_hr1 = document.getElementById('handgrip_hr_1').value || '';
+      var handgrip_hr2 = document.getElementById('handgrip_hr_2').value || '';
+      var handgrip_hr3 = document.getElementById('handgrip_hr_3').value || '';
+      var handgrip_hr4 = document.getElementById('handgrip_hr_4').value || '';
+      var handgrip_hr5 = document.getElementById('handgrip_hr_5').value || '';
+      var lv_edd = document.getElementById('lv_edd').value || '';
+      var lv_esd = document.getElementById('lv_esd').value || '';
+      var ivs = document.getElementById('ivs').value || '';
+      var pw = document.getElementById('pw').value || '';
+      var la = document.getElementById('la').value || '';
+      var lavi = document.getElementById('lavi').value || '';
+      var raa = document.getElementById('raa').value || '';
+      var rv = document.getElementById('rv').value || '';
+      var ao_root = document.getElementById('ao_root').value || '';
+      var ao_asc = document.getElementById('ao_asc').value || '';
+      var mpa = document.getElementById('mpa').value || '';
+      var ef = document.getElementById('ef').value || '';
+      var edv = document.getElementById('edv').value || '';
+      var esv = document.getElementById('esv').value || '';
+      var rwm = document.getElementById('rwm').value || '';
+      var tapse = document.getElementById('tapse').value || '';
+      var mr_sev = document.getElementById('mr_severity').value || '';
+      var mr_vc = document.getElementById('mr_vc').value || '';
+      var mr_pisa = document.getElementById('mr_pisa').value || '';
+      var mr_ero = document.getElementById('mr_ero').value || '';
+      var mr_ea = document.getElementById('mr_ea').value || '';
+      var mr_mxpg = document.getElementById('mr_mxpg').value || '';
+      var mr_mnpg = document.getElementById('mr_mnpg').value || '';
+      var av_morph = document.getElementById('av_morphology').value || '';
+      var ar_sev = document.getElementById('ar_severity').value || '';
+      var ar_vc = document.getElementById('ar_vc').value || '';
+      var ar_pht = document.getElementById('ar_pht').value || '';
+      var av_vmax = document.getElementById('av_vmax').value || '';
+      var av_pmax = document.getElementById('av_pmax').value || '';
+      var tr_sev = document.getElementById('tr_severity').value || '';
+      var tr_pmax = document.getElementById('tr_pmax').value || '';
+      var tr_vmax = document.getElementById('tr_vmax').value || '';
+      var pericardium = document.getElementById('pericardium').value || '';
+      var stress_hr_base = document.getElementById('stress_hr_base').value || '';
+      var stress_hr_peak = document.getElementById('stress_hr_peak').value || '';
+      var stress_hr_maxpct = document.getElementById('stress_hr_maxpct').value || '';
+      var stress_rr_base = document.getElementById('stress_rr_base').value || '';
+      var stress_rr_peak = document.getElementById('stress_rr_peak').value || '';
+      var stress_rr_after = document.getElementById('stress_rr_after').value || '';
+      var borg = document.getElementById('borg').value || '';
+      var sym_zm = document.getElementById('symptom_zmeczenie').checked;
+      var sym_bol = document.getElementById('symptom_bol').checked;
+      var sym_dusz = document.getElementById('symptom_duszność').checked;
+      var sym_omdl = document.getElementById('symptom_omdlenie').checked;
+      var sym_inne = document.getElementById('symptom_inne').checked;
+      var sym_inne_text = document.getElementById('symptom_inne_text').value || '';
+      var counters_reset = document.getElementById('counters_reset').checked;
+      var mode_before = document.getElementById('mode_before').value || '';
+      var mode_after = document.getElementById('mode_after').value || '';
+
+      // Przygotowanie zawartości dokumentu (HTML) do umieszczenia w DOCX
+      var logoBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPcAAADMCAMAAACY78UPAAABMlBMVEX////OMC////3//v////z8//7OOC//8tv/8df//5H///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8/v4ReTMT/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AP8A/wD/AAAAAP//AP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//////AAD///8A//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5PekAAAAMXRSTlMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACQsLGxwdHh8jJCYqKy0uMTI6Ozw+P0BBREdKS01QUVJUVVdZW11eX2NhZGtvcHFydHt9e4CBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6goaKjpKWmp6ipqqusr7CxsrW3uby9wMHCx8jLy8zNzs/Q0tPU1dbY2tzd3uDh4uTl5ufq6+zt7u/w8fL09fb4+fr7/P3+rz6SBgAAA3hJREFUeF7t3cdWwkAUxvF9XfQEFCpFwBJEjBCURNI0SQWBFiSJlhAJk9DtB795qf9Zp/cyqKnG3xOWez6dBYv/bc8ApBWEUwe7AcLwLI+IrLuogwPEEB8WDJ+AhsRB+Cvk4eAA8YoP8OQ4f4CCxEP4K+Tg4ADxig/w5Dh/gILMQ/gryOBgAPHKD/DkOH+AgsRD+Cvk4eAA8YoP8OQ4f4CCxEP4K+Tg4ADxig/w5Dh/gILMQ/gryOBgAPHKD/DkOH+AgsRD+Cvk4eAA8YoP8OQ4f4CCxEP4K+Tg4ADxig/w5Dh/gILMQ/gryOBgAPHKD/DkOH+AgsRD+Cvk4eAA8YoP8OQ4f4CCxEP4K+Tg4ADxig/w5Dh/gILMQ/gryOBgAPHKD/DkOH+AgsRD+Cvk4eAA8YoP8OQ4f4CDhf/6SLU5fM0ZLp49DthFJ9uhfse1cDOTgei4TT6A/WPImj9erT9/eEXD2Srz+gPXvnmRmY2y9CrLjOI+X2TQaO1tgP/M/pbWNy3AcO+X9O9yqgH9d++XrbW2D2ER3zgIabJ9Fr3fbSwlpShCDfRHoEjNwr9g6DkRGQu6hDI9EHoCM3CvmDoOQEZC4KoxysSDsc4YeKOgvvuyLIB8EaCOghcUGDmFPh5GhDWPVLwgUXQ8eFoIwVb/3LErTA8wcc3PoT1zayUzP9jT2Sym+FhOwk6b084smPmVZqHw4bPoilvmviry4+qNPX8VGaT3vKyF+7bd/OWy88OTKS4yWy8yv/m0t+bTKzpkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAODk3AHXQcxvQlKuOAAAAAElFTkSuQmCC';
+      var headerTable = '<table style="width:100%;"><tr>'
+                      + '<td><img src="' + logoBase64 + '" style="max-height:80px;"></td>'
+                      + '<td style="text-align:right;"><strong>Klinika Kardiologii</strong><br>Szpital Uniwersytecki w Mieście X<br>ul. Przykładowa 1, 00-000 Miasto</td>'
+                      + '</tr></table>';
+      var title = '<h2 style="text-align:center; margin: 20px 0;">Karta wizyty pacjenta</h2>';
+      // Dane pacjenta w sekcji nagłówkowej dokumentu
+      var patientInfo = '<p><strong>Pacjent:</strong> ' + nazwisko + ' ' + imie + ', ur. ' + data_urodzenia + ', PESEL: ' + pesel + '</p>';
+      patientInfo += '<p><strong>Data wizyty:</strong> ' + data_wizyty + '</p>';
+      if(data_implantacji) patientInfo += '<p><strong>Data implantacji PM:</strong> ' + data_implantacji + '</p>';
+      if(czas_od_implantacji) patientInfo += '<p><strong>Czas od implantacji:</strong> ' + czas_od_implantacji + '</p>';
+      if(typ_stymulatora) patientInfo += '<p><strong>Typ stymulatora:</strong> ' + typ_stymulatora + '</p>';
+      // Sekcja: Kontrola kardiostymulatora
+      var pmSection = '<h3>Kontrola kardiostymulatora</h3>';
+      pmSection += '<p>Bateria: ' + bateria + '%, ERI: ' + eri + '</p>';
+      pmSection += '<p>Vp: ' + vp + '%, Sensing: ' + sensing + ' mV</p>';
+      pmSection += '<p>Pacing threshold: ' + threshold + ' V, Impedancja: ' + impedancja + ' Ω</p>';
+      pmSection += '<p>Tryb: ' + tryb + '</p>';
+      if(ekg) {
+        var ekgText = ekg.replace(/\n/g, '<br>');
+        pmSection += '<p>EKG: ' + ekgText + '</p>';
+      }
+      pmSection += '<p>Ocena jakości życia (EQ-5D-5L) – formularz w załączeniu.</p>';
+      // Sekcja: Test PASAT
+      var pasatSection = '<h3>Test PASAT</h3>';
+      pasatSection += '<p>HR baseline: ' + pasat_hr_base + '/min, HR koniec: ' + pasat_hr_end + '/min</p>';
+      pasatSection += '<p>RR baseline: ' + pasat_rr_base + ' mmHg, RR koniec: ' + pasat_rr_end + ' mmHg</p>';
+      pasatSection += '<p>% poprawnych odpowiedzi: ' + pasat_correct + '%</p>';
+      pasatSection += '<p>SpO2: ' + pasat_spo2 + '%</p>';
+      // Sekcja: Handgrip Test
+      var hgSection = '<h3>Handgrip Test</h3>';
+      hgSection += '<p>Wyjściowo: ' + handgrip_kg + ' kg, HR początkowy: ' + handgrip_hr_base + '/min, RR początkowy: ' + handgrip_rr_base + ' mmHg</p>';
+      hgSection += '<p>HR po 1 min: ' + handgrip_hr1 + '/min, 2 min: ' + handgrip_hr2 + '/min, 3 min: ' + handgrip_hr3 + '/min, 4 min: ' + handgrip_hr4 + '/min, 5 min: ' + handgrip_hr5 + '/min</p>';
+      // Sekcja: ECHO serca
+      var echoSection = '<h3>ECHO serca</h3>';
+      echoSection += '<p>Wymiary jam serca: LVEDD: ' + lv_edd + ' mm, LVESD: ' + lv_esd + ' mm, IVSd: ' + ivs + ' mm, PWd: ' + pw + ' mm, LA: ' + la + ' mm, LAVI: ' + lavi + ' ml/m², RAA: ' + raa + ' cm², RV: ' + rv + ' mm.</p>';
+      echoSection += '<p>Szerokość pni naczyniowych: Ao op: ' + ao_root + ' mm, Ao asc: ' + ao_asc + ' mm, MPA: ' + mpa + ' mm.</p>';
+      echoSection += '<p>EF: ' + ef + '%, EDV: ' + edv + ' ml, ESV: ' + esv + ' ml.</p>';
+      echoSection += '<p>Odcinkowe zaburzenia kurczliwości: ' + (rwm ? rwm : '') + '.</p>';
+      echoSection += '<p>TAPSE: ' + tapse + ' mm.</p>';
+      echoSection += '<p>Zastawka mitralna: ' + (mr_sev ? mr_sev + ' ' : '') + 'MR, VC: ' + mr_vc + ', PISA: ' + mr_pisa + ', ERO: ' + mr_ero + ', E/A: ' + mr_ea + ', MxPG: ' + mr_mxpg + ', MnPG: ' + mr_mnpg + '.</p>';
+      echoSection += '<p>Zastawka aortalna: ' + (av_morph ? av_morph + ', ' : '') + (ar_sev ? ar_sev + ' AR, ' : '') + 'VC: ' + ar_vc + ', PHT: ' + ar_pht + ', Vmax: ' + av_vmax + ', Pmax: ' + av_pmax + '.</p>';
+      echoSection += '<p>Zastawka trójdzielna: ' + (tr_sev ? tr_sev + ' TR, ' : '') + 'Pmax: ' + tr_pmax + ', Vmax: ' + tr_vmax + '.</p>';
+      echoSection += '<p>Osierdzie: ' + pericardium + '.</p>';
+      // Sekcja: Próba wysiłkowa
+      var stressSection = '<h3>Próba wysiłkowa</h3>';
+      stressSection += '<p>HR spoczynkowe: ' + stress_hr_base + '/min, HR szczytowe: ' + stress_hr_peak + '/min, % HR max: ' + stress_hr_maxpct + '%</p>';
+      stressSection += '<p>RR spoczynkowe: ' + stress_rr_base + ' mmHg, RR maksymalne: ' + stress_rr_peak + ' mmHg, RR po teście: ' + stress_rr_after + ' mmHg</p>';
+      stressSection += '<p>Skala Borga: ' + borg + '</p>';
+      var symptomsList = [];
+      if(sym_zm) symptomsList.push('zmęczenie');
+      if(sym_bol) symptomsList.push('ból w klp');
+      if(sym_dusz) symptomsList.push('duszność');
+      if(sym_omdl) symptomsList.push('omdlenie');
+      if(sym_inne) {
+        if(sym_inne_text) {
+          symptomsList.push('inne: ' + sym_inne_text);
+        } else {
+          symptomsList.push('inne');
+        }
+      }
+      if(symptomsList.length === 0) {
+        stressSection += '<p>Objawy: brak.</p>';
+      } else {
+        stressSection += '<p>Objawy: ' + symptomsList.join(', ') + '.</p>';
+      }
+      // Sekcja: Resetowanie liczników i zmiana trybu
+      var resetSection = '<h3>Zresetowanie liczników i zmiana trybu</h3>';
+      resetSection += '<p>Liczniki zresetowane: ' + (counters_reset ? 'Tak' : 'Nie') + '</p>';
+      resetSection += '<p>Tryb przed zmianą: ' + mode_before + '</p>';
+      resetSection += '<p>Tryb po zmianie: ' + mode_after + '</p>';
+      // Połączenie całości
+      var content = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>'
+                  + headerTable + title + patientInfo + pmSection + pasatSection + hgSection + echoSection + stressSection + resetSection
+                  + '</body></html>';
+      // Konwersja HTML -> Blob DOCX i pobranie pliku
+      var blob = window.htmlDocx.asBlob(content);
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      var filename = (nazwisko && imie ? (nazwisko + '_' + imie) : 'eksport') + '_karta_wizyty.docx';
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   </script>
 </body>
 </html>
