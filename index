@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Karta wizyty pacjenta</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+  <!-- FileSaver.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <!-- html-docx-js -->
+  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 p-4">
+  <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+    <div class="p-6">
+      <!-- Nagłówek -->
+      <header class="flex flex-col md:flex-row items-center mb-6">
+        <img src="logo_szpitala.png" alt="Logo szpitala" class="h-24 mr-6 mb-4 md:mb-0">
+        <div class="text-center md:text-left">
+          <h2 class="text-3xl font-bold">Klinika Kardiologii z Pododdziałem Ostrych Zespołów Wieńcowych</h2>
+          <p class="mt-1 text-lg">Kliniczny Szpital Wojewódzki Nr 2 im. Św. Jadwigi Królowej w Rzeszowie</p>
+          <p class="text-sm text-gray-600">ul. Lwowska 60, 35-301 Rzeszów</p>
+        </div>
+      </header>
+
+      <h1 class="text-2xl md:text-3xl font-semibold text-center mb-8">Karta wizyty pacjenta</h1>
+
+      <form id="visitForm" class="space-y-6">
+        <!-- 1. Wizyta -->
+        <fieldset class="border p-4 rounded">
+          <legend class="font-semibold">1. Wizyta</legend>
+          <label class="block text-sm mt-2">Opis wizyty<br>
+            <input name="visitDescription" type="text" class="mt-1 w-full border rounded p-2" placeholder="np. I (1 miesiąc po implantacji PM VVI)" required>
+          </label>
+        </fieldset>
+
+        <!-- 2. Kontrola kardiostymulatora -->
+        <fieldset class="border p-4 rounded">
+          <legend class="font-semibold">2. Kontrola kardiostymulatora</legend>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+            <label class="block text-sm">Bateria [%]<br>
+              <input name="batteryPercent" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">ERI [%]<br>
+              <input name="ERI" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">Vp [%]<br>
+              <input name="VpPercent" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">Sensing [mV]<br>
+              <input name="sensing" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">Pacing threshold [V]<br>
+              <input name="pacingThreshold" type="number" step="0.01" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">Impedancja [Ω]<br>
+              <input name="impedance" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">Tryb pracy<br>
+              <input name="pmMode" type="text" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">EKG<br>
+              <textarea name="EKG" rows="2" class="mt-1 w-full border rounded p-2"></textarea>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- 3. Jakość życia i PASAT -->
+        <fieldset class="border p-4 rounded">
+          <legend class="font-semibold">3. Jakość życia i Test PASAT</legend>
+          <label class="block text-sm mt-2">Ocena jakości życia (EQ-5D-5L)<br>
+            <input name="EQ5D" type="text" class="mt-1 w-full border rounded p-2" placeholder="wynik/uwagi">
+          </label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <label class="block text-sm">HR PASAT baseline [/min]<br>
+              <input name="PASAT_HR_baseline" type="number" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">HR PASAT end [/min]<br>
+              <input name="PASAT_HR_end" type="number" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">RR PASAT baseline [mmHg]<br>
+              <input name="PASAT_RR_baseline" type="number" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">RR PASAT end [mmHg]<br>
+              <input name="PASAT_RR_end" type="number" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">% poprawnych odpowiedzi<br>
+              <input name="PASAT_percentCorrect" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">SpO₂ [%]<br>
+              <input name="SpO2" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- 4. ECHO serca -->
+        <fieldset class="border p-4 rounded">
+          <legend class="font-semibold">4. ECHO serca</legend>
+          <!-- Wymiary -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-2" id="dims"></div>
+          <!-- Objętości & TAPSE -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+            <label class="block text-sm">EF [%]<br>
+              <input name="EF" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">EDV [ml]<br>
+              <input name="EDV" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">ESV [ml]<br>
+              <input name="ESV" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">TAPSE [mm]<br>
+              <input name="TAPSE" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+            </label>
+          </div>
+          <label class="block text-sm mt-4">Odcinkowe zaburzenia kurczliwości<br>
+            <select name="segmentalPresent" class="mt-1 w-full border rounded p-2">
+              <option value="">–</option><option>Tak</option><option>Nie</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <!-- 5. Ocena zastawek -->
+        <fieldset class="border p-4 rounded space-y-6">
+          <legend class="font-semibold">5. Ocena zastawek</legend>
+
+          <!-- 5.1 Mitralna -->
+          <div>
+            <h3 class="font-semibold mb-2">5.1 Mitralna</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label class="block text-sm">Niedomykalność<br>
+                <select name="mitralRegurg" class="mt-1 w-full border rounded p-2">
+                  <option value="">–</option><option>łagodna</option><option>umiarkowana</option><option>ciężka</option>
+                </select>
+              </label>
+              <label class="block text-sm">VC [cm]<br>
+                <input name="mitralVC" type="number" step="0.01" class="mt-1 w-full border rounded p-2">
+              </label>
+              <label class="block text-sm">PISA [mm]<br>
+                <input name="mitralPISA" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+              </label>
+              <label class="block text-sm">ERO [cm²]<br>
+                <input name="mitralERO" type="number" step="0.01" class="mt-1 w-full border rounded p-2">
+              </label>
+              <label class="block text-sm">E/A ratio<br>
+                <input name="mitralEAratio" type="text" class="mt-1 w-full border rounded p-2">
+              </label>
+              <label class="block text-sm">MxPG [mmHg]<br>
+                <input name="mitralMxPG" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+              </label>
+              <label class="block text-sm">MnPG [mmHg]<br>
+                <input name="mitralMnPG" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+              </label>
+            </div>
+          </div>
+
+          <!-- 5.2 Aortalna -->
+          <div>
+            <h3 class="font-semibold mb-2">5.2 Aortalna</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label class="block text-sm">Morfologia<br>
+                <select name="aorticMorphology" class="mt-1 w-full border rounded p-2">
+                  <option value="">–</option><option>trójpłatkowa</option><option>dwupłatkowa</option>
+                </select>
+              </label>
+              <label class="block text-sm">Niedomykalność<br>
+                <select name="aorticRegurg" class="mt-1 w-full border rounded p-2">
+                  <option value="">–</option><option>łagodna</option><option>umiarkowana</option><option>ciężka</option>
+                </select>
+              </label>
+              <label class="block text-sm">VC [cm]<br>
+                <input name="aorticVC" type="number" step="0.01" class="mt-1 w-full border rounded p-2">
+              </label>
+              <label class="block text-sm">PHT [ms]<br>
+                <input name="aorticPHT" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+              </label>
+              <label class="block text-sm">Vmax [m/s]<br>
+                <input name="aorticVmax" type="number" step="0.01" class="mt-1 w-full border rounded p-2">
+              </label>
+              <label class="block text-sm">Pmax [mmHg]<br>
+                <input name="aorticPmax" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+              </label>
+            </div>
+          </div>
+
+          <!-- 5.3 Trójdzielna -->
+          <div>
+            <h3 class="font-semibold mb-2">5.3 Trójdzielna</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label class="block text-sm">Niedomykalność<br>
+                <select name="tricuspidRegurg" class="mt-1 w-full border rounded p-2">
+                  <option value="">–</option><option>łagodna</option><option>umiarkowana</option><option>ciężka</option>
+                </select>
+              </label>
+              <label class="block text-sm">Pmax [mmHg]<br>
+                <input name="tricuspidPmax" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+              </label>
+              <label class="block text-sm">TR Vmax [m/s]<br>
+                <input name="tricuspidVmax" type="number" step="0.01" class="mt-1 w-full border rounded p-2">
+              </label>
+              <label class="block text-sm">Odległość od pierścienia [mm]<br>
+                <input name="tricuspidAnnulusDistance" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+              </label>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- 6. Próba wysiłkowa -->
+        <fieldset class="border p-4 rounded">
+          <legend class="font-semibold">6. Próba wysiłkowa</legend>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+            <label class="block text-sm">HR baseline [/min]<br>
+              <input name="stress_HR_baseline" type="number" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">HR szczyt [/min]<br>
+              <input name="stress_HR_peak" type="number" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">% HR max<br>
+              <input name="stress_HR_percent" type="number" step="0.1" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">RR baseline [mmHg]<br>
+              <input name="stress_RR_baseline" type="number" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">RR max [mmHg]<br>
+              <input name="stress_RR_max" type="number" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">Skala Borga<br>
+              <input name="stress_BorgScale" type="number" class="mt-1 w-full border rounded p-2">
+            </label>
+            <label class="block text-sm">Objawy<br>
+              <textarea name="stress_symptoms" rows="2" class="mt-1 w-full border rounded p-2" placeholder="zmęczenie, ból w klp, ..."></textarea>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- 7. Reset i zmiana trybu -->
+        <fieldset class="border p-4 rounded">
+          <legend class="font-semibold">7. Resetowanie liczników i zmiana trybu</legend>
+          <label class="block text-sm mt-2">Nowy tryb / uwagi<br>
+            <input name="resetCounters" type="text" class="mt-1 w-full border rounded p-2" placeholder="np. Wyjściowo: CLS / R">
+          </label>
+        </fieldset>
+
+        <!-- Eksport -->
+        <div class="flex space-x-4 pt-4">
+          <button type="button" id="exportCsv" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Eksportuj CSV</button>
+          <button type="button" id="exportDocx" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Eksportuj DOCX</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Dynamiczne pola wymiarów
+    const dimsList = [
+      'LV [mm]', 'IVSd [mm]', 'PWd [mm]',
+      'LA [mm]', 'LAVI [mm]', 'RAA [cm2]', 'RV [mm]'
+    ];
+    const dimsContainer = document.getElementById('dims');
+    dimsList.forEach(label => {
+      const wrap = document.createElement('label');
+      wrap.className = 'block text-sm';
+      wrap.innerHTML = `${label}<br>
+        <input name="${label}" type="number" step="0.1" class="mt-1 w-full border rounded p-2">`;
+      dimsContainer.appendChild(wrap);
+    });
+
+    // Zbiera dane z formularza
+    function collect() {
+      const fm = new FormData(document.getElementById('visitForm')), data = {};
+      fm.forEach((v,k) => data[k] = v);
+      return data;
+    }
+
+    // Eksport CSV
+    document.getElementById('exportCsv').onclick = () => {
+      const d = collect();
+      const safeName = (d.patientName||'record').replace(/\s+/g,'_');
+      const csv = Papa.unparse([d], { header: true, delimiter: ';' });
+      const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+      saveAs(blob, `${safeName}_karta_wizyty.csv`);
+    };
+
+    // Eksport DOCX
+    document.getElementById('exportDocx').onclick = async () => {
+      const d = collect();
+      // pobierz logo
+      let logoURI = '';
+      await fetch('logo_szpitala.png')
+        .then(r => r.blob())
+        .then(b => new Promise(r => {
+          const fr = new FileReader();
+          fr.onload = () => r(fr.result);
+          fr.readAsDataURL(b);
+        }))
+        .then(u => logoURI = u);
+
+      let html = `<html><head><meta charset="UTF-8"/></head>
+        <body style="font-family:Arial,sans-serif;">`;
+
+      // nagłówek DOCX
+      html += `
+        <div style="text-align:center;margin-bottom:20px;">
+          <img src="${logoURI}" style="height:80px;margin-bottom:10px;"><br>
+          <span style="font-size:16pt;font-weight:bold;">Klinika Kardiologii z Pododdziałem Ostrych Zespołów Wieńcowych</span><br>
+          <span style="font-size:12pt;">Kliniczny Szpital Wojewódzki Nr 2 im. Św. Jadwigi Królowej w Rzeszowie</span><br>
+          <span style="font-size:10pt;">ul. Lwowska 60, 35-301 Rzeszów</span><br><br>
+          <span style="font-size:14pt;font-weight:bold;">Karta wizyty pacjenta</span>
+        </div>`;
+
+      // każda sekcja jako tabela lub paragrafy
+      // 1. Wizyta
+      html += `<h2>1. Wizyta</h2><p>${d.visitDescription||''}</p>`;
+
+      // 2. Kontrola kardio
+      html += `<h2>2. Kontrola kardiostymulatora</h2><table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;">`;
+      ['batteryPercent','ERI','VpPercent','sensing','pacingThreshold','impedance','pmMode','EKG']
+        .forEach(key => {
+          if(d[key]) {
+            html += `<tr><td><b>${key.replace(/([A-Z])/g,' $1')}</b></td><td>${d[key]}</td></tr>`;
+          }
+        });
+      html += `</table><br>`;
+
+      // 3. Jakość życia i PASAT
+      html += `<h2>3. Jakość życia i Test PASAT</h2>`;
+      if(d.EQ5D) html += `<p><b>EQ-5D-5L:</b> ${d.EQ5D}</p>`;
+      html += `<table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;">`;
+      ['PASAT_HR_baseline','PASAT_HR_end','PASAT_RR_baseline','PASAT_RR_end','PASAT_percentCorrect','SpO2']
+        .forEach(key => {
+          if(d[key]) html += `<tr><td><b>${key.replace(/_/g,' ')}</b></td><td>${d[key]}</td></tr>`;
+        });
+      html += `</table><br>`;
+
+      // 4. ECHO serca
+      html += `<h2>4. ECHO serca</h2><table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;">`;
+      dimsList.forEach(label => {
+        if(d[label]) html += `<tr><td>${label}</td><td>${d[label]}</td></tr>`;
+      });
+      ['EF','EDV','ESV','TAPSE','segmentalPresent'].forEach(key => {
+        if(d[key]) html += `<tr><td><b>${key}</b></td><td>${d[key]}</td></tr>`;
+      });
+      html += `</table><br>`;
+
+      // 5. Ocena zastawek
+      html += `<h2>5. Ocena zastawek</h2>`;
+      function valveSection(title, fields) {
+        html += `<h3>${title}</h3><table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;">`;
+        fields.forEach(([label, key]) => {
+          if(d[key]) html += `<tr><td>${label}</td><td>${d[key]}</td></tr>`;
+        });
+        html += `</table><br>`;
+      }
+      valveSection('Mitralna', [
+        ['Niedomykalność', 'mitralRegurg'],
+        ['VC [cm]', 'mitralVC'],
+        ['PISA [mm]', 'mitralPISA'],
+        ['ERO [cm²]', 'mitralERO'],
+        ['E/A ratio', 'mitralEAratio'],
+        ['MxPG [mmHg]', 'mitralMxPG'],
+        ['MnPG [mmHg]', 'mitralMnPG']
+      ]);
+      valveSection('Aortalna', [
+        ['Morfologia', 'aorticMorphology'],
+        ['Niedomykalność', 'aorticRegurg'],
+        ['VC [cm]', 'aorticVC'],
+        ['PHT [ms]', 'aorticPHT'],
+        ['Vmax [m/s]', 'aorticVmax'],
+        ['Pmax [mmHg]', 'aorticPmax']
+      ]);
+      valveSection('Trójdzielna', [
+        ['Niedomykalność', 'tricuspidRegurg'],
+        ['Pmax [mmHg]', 'tricuspidPmax'],
+        ['TR Vmax [m/s]', 'tricuspidVmax'],
+        ['Odległość od pierścienia [mm]', 'tricuspidAnnulusDistance']
+      ]);
+
+      // 6. Próba wysiłkowa
+      html += `<h2>6. Próba wysiłkowa</h2><table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;">`;
+      ['stress_HR_baseline','stress_HR_peak','stress_HR_percent','stress_RR_baseline','stress_RR_max','stress_BorgScale','stress_symptoms']
+        .forEach(key => {
+          if(d[key]) html += `<tr><td><b>${key.replace(/_/g,' ')}</b></td><td>${d[key]}</td></tr>`;
+        });
+      html += `</table><br>`;
+
+      // 7. Reset i tryb
+      if(d.resetCounters) {
+        html += `<h2>7. Resetowanie liczników i zmiana trybu</h2>
+                 <p>${d.resetCounters}</p>`;
+      }
+
+      html += `</body></html>`;
+      const blob = htmlDocx.asBlob(html);
+      const safeName = (d.patientName||'form').replace(/\s+/g,'_');
+      saveAs(blob, `${safeName}_karta_wizyty.docx`);
+    };
+  </script>
+</body>
+</html>
